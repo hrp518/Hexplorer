@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<title>首页</title>
+		<script type="text/javascript" src="js/mui.js" ></script>
+		<script type="text/javascript" src="js/mui.min.js" ></script>
+		<link rel="stylesheet" href="css/mui.min.css" />
+		<link rel="stylesheet" href="css/mui.css" />
+		<style type="text/css">
+			body {
+				text-align: center;
+				padding-top: 200px;
+			}
+			
+			button {
+				width: 100px;
+				height: 40px;
+				background-color: #FF0000;
+				color: #ffffff;
+				font-size: 18px;
+				border: 1px solid #FF0000;
+				border-radius: 5px;
+			}
+		</style>
+		<script type="text/javascript">
+			// 5+引擎初始化完毕
+			var plusReady = function(callback) {
+				if(window.plus) {
+					callback();
+				} else {
+					document.addEventListener('plusready', callback);
+				}
+			};
+			// 内置浏览器
+			var browser = {};
+			// 初始化
+			browser.init = function() {
+				this.initWebview();
+				this.handleEvent();
+			};
+			// 初始化webview相关
+			browser.initWebview = function() {
+				var _self = this;
+				// 创建webview
+				_self.webview = plus.webview.create('', 'browser', {
+					titleNView: {
+						type:'transparent',
+						backgroundColor: '#FFFFFF',
+						progress: { //进度条
+							color: '#FF0000',
+							height: '1px'
+						},
+						splitLine: { //底部分割线
+							color: '#cccccc',
+							height: '1px'
+						},
+						buttons: [{ //后退按钮
+							'float': 'left',
+							fontSrc: '_www/font/browser.ttf',
+							text: '\ue603',
+							onclick: _self.back.bind(_self) //指定函数的上下文为browser，否则是当前这个对象；
+						}, { //前进箭头
+							'float': 'left',
+							fontSrc: '_www/font/browser.ttf',
+							text: '\ue602',
+							onclick: _self.forward.bind(_self)
+						}, ]
+					}
+				});
+				// 配置下拉刷新
+				_self.webview.setPullToRefresh({
+					support: true
+				}, function() {
+					_self.reload();
+					var titleUpdate = function() {
+						setTimeout(function() {
+							_self.webview.endPullToRefresh();
+							_self.webview.removeEventListener('titleUpdate', titleUpdate);
+						}, 300);
+					};
+					_self.webview.addEventListener('titleUpdate', titleUpdate);
+				});
+			};
+			// 绑定事件
+			browser.handleEvent = function() {
+				var _self = this;
+				var btnEl = document.querySelector('button');
+				_self.show();
+				btnEl.addEventListener('click', function() {
+				
+				});
+				plus.key.addEventListener('backbutton', function() {
+					var topWebview = plus.webview.getTopWebview();
+					// 不等于浏览器窗口
+					if(topWebview.id !== 'browser') {
+						// 这里除了浏览器窗口就是首页了，直接退出了；
+						plus.runtime.quit();
+					} else {
+						_self.back();
+					}
+				});
+			};
+			// 显示浏览器
+			browser.show = function(url) {
+				url = url || 'https://www.baidu.com'; //默认使用百度
+				this.webview.loadURL(url);
+				this.webview.show('slide-in-right');
+			};
+			// 后退
+			browser.back = function() {
+				var _self = this;
+				_self.webview.canBack(function(event) {
+					if(event.canBack) {
+						_self.webview.back();
+					} else {
+						_self.close();
+					}
+				});
+			};
+			// 前进
+			browser.forward = function() {
+				var _self = this;
+				_self.webview.canForward(function(event) {
+					if(event.canForward) {
+						_self.webview.forward();
+					} else {
+						plus.nativeUI.toast('没有可前进的地址');
+					}
+				});
+			};
+			// 刷新
+			browser.reload = function() {
+				this.webview.reload(true);
+			};
+			// 关闭
+			browser.close = function() {
+				this.webview.hide('slide-out-right');
+				this.webview.clear();
+			};
+			plusReady(function() {
+				browser.init();
+			});
+		</script>
+	</head>
+
+	<body>
+		
+	</body>
+
+</html>
